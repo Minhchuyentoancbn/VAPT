@@ -1,0 +1,11 @@
+local_datasets/
+checkpoints/
+output/
+
+**__pycache__/
+
+*.ipynb
+
+*.pdf
+
+trash/
