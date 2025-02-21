@@ -44,7 +44,6 @@ class OxfordIIITPetData(base.ImageTfdsData):
     """
 
     def __init__(self, data_dir=None, train_split_percent=None):
-
         dataset_builder = tfds.builder("oxford_iiit_pet:3.*.*", data_dir=data_dir)
         dataset_builder.download_and_prepare()
         train_split_percent = train_split_percent or TRAIN_SPLIT_PERCENT

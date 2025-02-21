@@ -44,7 +44,6 @@ class ADPT_VisionTransformerMoCo(VisionTransformerMoCo):
         weight_init="",
         **kwargs
     ):
-
         super(ADPT_VisionTransformerMoCo, self).__init__(
             stop_grad_conv1=stop_grad_conv1,
             img_size=img_size,

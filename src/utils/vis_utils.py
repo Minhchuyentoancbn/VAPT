@@ -248,7 +248,6 @@ def average_df(df, metric_names=["l-val_top1", "l-val_base_top1"], take_average=
     for d_name in data_names:
         for f_name in f_names:
             for t_name in t_names:
-
                 result = df[df.data == d_name]
                 result = result[result.feature == f_name]
                 result = result[result.type == t_name]

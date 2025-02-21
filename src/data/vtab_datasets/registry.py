@@ -42,7 +42,6 @@ def partialclass(cls, *base_args, **base_kwargs):
     """
 
     class _NewClass(cls):
-
         def __init__(self, *args, **kwargs):
             bound_args = base_args + args
             bound_kwargs = base_kwargs.copy()

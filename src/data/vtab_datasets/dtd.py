@@ -37,7 +37,6 @@ class DTDData(base.ImageTfdsData):
     """
 
     def __init__(self, data_dir=None):
-
         dataset_builder = tfds.builder("dtd:3.*.*", data_dir=data_dir)
         dataset_builder.download_and_prepare()
 

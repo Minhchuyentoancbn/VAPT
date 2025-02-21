@@ -41,7 +41,6 @@ class ADPT_VisionTransformer(VisionTransformer):
         weight_init="",
         **kwargs
     ):
-
         super(ADPT_VisionTransformer, self).__init__(
             img_size=img_size,
             patch_size=patch_size,

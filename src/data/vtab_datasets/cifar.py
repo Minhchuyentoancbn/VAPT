@@ -42,7 +42,6 @@ class CifarData(base.ImageTfdsData):
     """
 
     def __init__(self, num_classes=10, data_dir=None, train_split_percent=None):
-
         if num_classes == 10:
             dataset_builder = tfds.builder("cifar10:3.*.*", data_dir=data_dir)
         elif num_classes == 100:

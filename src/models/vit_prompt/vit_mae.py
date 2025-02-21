@@ -15,6 +15,7 @@ from timm.models.vision_transformer import _cfg
 
 from ..vit_backbones.vit_mae import VisionTransformer
 from ...utils import logging
+
 logger = logging.get_logger("visual_prompt")
 
 
@@ -22,8 +23,12 @@ class PromptedVisionTransformer(VisionTransformer):
     def __init__(self, prompt_config, **kwargs):
         super().__init__(**kwargs)
         self.prompt_config = prompt_config
-        if self.prompt_config.DEEP and self.prompt_config.LOCATION not in ["prepend", ]:
-            raise ValueError("Deep-{} is not supported".format(self.prompt_config.LOCATION))
+        if self.prompt_config.DEEP and self.prompt_config.LOCATION not in [
+            "prepend",
+        ]:
+            raise ValueError(
+                "Deep-{} is not supported".format(self.prompt_config.LOCATION)
+            )
 
         num_tokens = self.prompt_config.NUM_TOKENS
 
@@ -32,21 +37,25 @@ class PromptedVisionTransformer(VisionTransformer):
 
         # initiate prompt:
         if self.prompt_config.INITIATION == "random":
-            val = math.sqrt(6. / float(3 * reduce(mul, self.patch_embed.patch_size, 1) + self.embed_dim))  # noqa
+            val = math.sqrt(
+                6.0
+                / float(
+                    3 * reduce(mul, self.patch_embed.patch_size, 1) + self.embed_dim
+                )
+            )  # noqa
 
-            self.prompt_embeddings = nn.Parameter(torch.zeros(
-                1, num_tokens, self.embed_dim))
+            self.prompt_embeddings = nn.Parameter(
+                torch.zeros(1, num_tokens, self.embed_dim)
+            )
             # xavier_uniform initialization
             nn.init.uniform_(self.prompt_embeddings.data, -val, val)
 
             if self.prompt_config.DEEP:
-                self.deep_prompt_embeddings = nn.Parameter(torch.zeros(
-                    len(self.blocks) - 1,
-                    num_tokens, self.embed_dim
-                ))
+                self.deep_prompt_embeddings = nn.Parameter(
+                    torch.zeros(len(self.blocks) - 1, num_tokens, self.embed_dim)
+                )
                 # xavier_uniform initialization
-                nn.init.uniform_(
-                    self.deep_prompt_embeddings.data, -val, val)
+                nn.init.uniform_(self.deep_prompt_embeddings.data, -val, val)
 
         else:
             raise ValueError("Other initiation scheme is not supported")
@@ -57,12 +66,14 @@ class PromptedVisionTransformer(VisionTransformer):
         if self.prompt_config.LOCATION == "prepend":
             # after CLS token, all before image patches
             x = self.embeddings(x)  # (batch_size, 1 + n_patches, hidden_dim)
-            x = torch.cat((
+            x = torch.cat(
+                (
                     x[:, :1, :],
-                    self.prompt_dropout(
-                        self.prompt_embeddings.expand(B, -1, -1)),
-                    x[:, 1:, :]
-                ), dim=1)
+                    self.prompt_dropout(self.prompt_embeddings.expand(B, -1, -1)),
+                    x[:, 1:, :],
+                ),
+                dim=1,
+            )
             # (batch_size, cls_token + n_prompt + n_patches, hidden_dim)
 
         else:
@@ -104,13 +115,16 @@ class PromptedVisionTransformer(VisionTransformer):
                     x = self.blocks[i](x)
                 else:
                     # prepend
-                    x = torch.cat((
-                        x[:, :1, :],
-                        self.prompt_dropout(
-                            self.deep_prompt_embeddings[i-1].expand(B, -1, -1)
+                    x = torch.cat(
+                        (
+                            x[:, :1, :],
+                            self.prompt_dropout(
+                                self.deep_prompt_embeddings[i - 1].expand(B, -1, -1)
+                            ),
+                            x[:, (1 + self.num_tokens) :, :],
                         ),
-                        x[:, (1 + self.num_tokens):, :]
-                    ), dim=1)
+                        dim=1,
+                    )
                     x = self.blocks[i](x)
         else:
             for blk in self.blocks:
@@ -125,26 +139,28 @@ class PromptedVisionTransformer(VisionTransformer):
             outcome = self.fc_norm(x)
         elif self.prompt_config.VIT_POOL_TYPE == "img_pool":
             assert self.prompt_config.LOCATION == "prepend"
-            x = x[:, self.num_tokens+1:, :].mean(dim=1)
+            x = x[:, self.num_tokens + 1 :, :].mean(dim=1)
             outcome = self.fc_norm(x)
         elif self.prompt_config.VIT_POOL_TYPE == "prompt_pool":
             assert self.prompt_config.LOCATION == "prepend"
-            x = x[:, 1:self.num_tokens+1, :].mean(dim=1)
+            x = x[:, 1 : self.num_tokens + 1, :].mean(dim=1)
             outcome = self.fc_norm(x)
         else:
             raise ValueError("pooling type for output is not supported")
 
         return outcome
-    
-
 
 
 class PromptedAdaptiveVisionTransformer(VisionTransformer):
     def __init__(self, prompt_config, **kwargs):
         super().__init__(**kwargs)
         self.prompt_config = prompt_config
-        if self.prompt_config.DEEP and self.prompt_config.LOCATION not in ["prepend", ]:
-            raise ValueError("Deep-{} is not supported".format(self.prompt_config.LOCATION))
+        if self.prompt_config.DEEP and self.prompt_config.LOCATION not in [
+            "prepend",
+        ]:
+            raise ValueError(
+                "Deep-{} is not supported".format(self.prompt_config.LOCATION)
+            )
 
         num_tokens = self.prompt_config.NUM_TOKENS
 
@@ -158,24 +174,28 @@ class PromptedAdaptiveVisionTransformer(VisionTransformer):
 
         # initiate prompt:
         if self.prompt_config.INITIATION == "random":
-            val = math.sqrt(6. / float(3 * reduce(mul, self.patch_embed.patch_size, 1) + self.embed_dim))  # noqa
+            val = math.sqrt(
+                6.0
+                / float(
+                    3 * reduce(mul, self.patch_embed.patch_size, 1) + self.embed_dim
+                )
+            )  # noqa
 
-            self.prompt_embeddings = nn.Parameter(torch.zeros(
-                1, num_tokens, self.embed_dim))
+            self.prompt_embeddings = nn.Parameter(
+                torch.zeros(1, num_tokens, self.embed_dim)
+            )
             # xavier_uniform initialization
             nn.init.uniform_(self.prompt_embeddings.data, -val, val)
 
             if self.prompt_config.DEEP:
                 total_d_layer = len(self.blocks) - self.prompt_config.VPT_DEPTH
                 if self.prompt_config.VPT_DEPTH > 1:
-                    self.deep_prompt_embeddings = nn.Parameter(torch.zeros(
-                        len(self.blocks) - 1,
-                        num_tokens, self.embed_dim
-                    ))
+                    self.deep_prompt_embeddings = nn.Parameter(
+                        torch.zeros(len(self.blocks) - 1, num_tokens, self.embed_dim)
+                    )
                     # xavier_uniform initialization
-                    nn.init.uniform_(
-                        self.deep_prompt_embeddings.data, -val, val)
-                    
+                    nn.init.uniform_(self.deep_prompt_embeddings.data, -val, val)
+
                 self.deep_prompt_embeddings_mlp = PromptMLP(
                     in_features=self.embed_dim,
                     out_features=self.embed_dim,
@@ -223,12 +243,14 @@ class PromptedAdaptiveVisionTransformer(VisionTransformer):
         if self.prompt_config.LOCATION == "prepend":
             # after CLS token, all before image patches
             x = self.embeddings(x)  # (batch_size, 1 + n_patches, hidden_dim)
-            x = torch.cat((
+            x = torch.cat(
+                (
                     x[:, :1, :],
-                    self.prompt_dropout(
-                        self.prompt_embeddings.expand(B, -1, -1)),
-                    x[:, 1:, :]
-                ), dim=1)
+                    self.prompt_dropout(self.prompt_embeddings.expand(B, -1, -1)),
+                    x[:, 1:, :],
+                ),
+                dim=1,
+            )
             # (batch_size, cls_token + n_prompt + n_patches, hidden_dim)
 
         else:
@@ -277,17 +299,17 @@ class PromptedAdaptiveVisionTransformer(VisionTransformer):
                     # prepend
                     if i < self.prompt_config.VPT_DEPTH:
                         deep_prompt_emb = self.prompt_dropout(
-                            self.deep_prompt_embeddings[i-1].expand(B, -1, -1)
+                            self.deep_prompt_embeddings[i - 1].expand(B, -1, -1)
                         )
                     else:
                         x_states = torch.cat(
-                            (
-                                x[:, :1, :],
-                                x[:, (1 + self.num_tokens):, :]
-                            ),
-                            dim=1
+                            (x[:, :1, :], x[:, (1 + self.num_tokens) :, :]), dim=1
                         )
-                        x_states = self.deep_prompt_norm[i - self.prompt_config.VPT_DEPTH](x_states)[:, 1:, :]  # (B, num_tokens, hidden_dim)
+                        x_states = self.deep_prompt_norm[
+                            i - self.prompt_config.VPT_DEPTH
+                        ](x_states)[
+                            :, 1:, :
+                        ]  # (B, num_tokens, hidden_dim)
                         if self.prompt_config.CONV:
                             x_states = x_states.permute(0, 2, 1).reshape(
                                 B, self.embed_dim, 14, 14
@@ -295,14 +317,21 @@ class PromptedAdaptiveVisionTransformer(VisionTransformer):
                         else:
                             x_states = x_states.permute(0, 2, 1)
 
-                        x_states = self.deep_prompt_downsample[i - self.prompt_config.VPT_DEPTH](x_states).permute(0, 2, 1)  # (B, num_tokens, hidden_dim)
+                        x_states = self.deep_prompt_downsample[
+                            i - self.prompt_config.VPT_DEPTH
+                        ](x_states).permute(
+                            0, 2, 1
+                        )  # (B, num_tokens, hidden_dim)
                         deep_prompt_emb = self.deep_prompt_embeddings_mlp(x_states)
 
-                    x = torch.cat((
-                        x[:, :1, :],
-                        deep_prompt_emb,
-                        x[:, (1 + self.num_tokens):, :]
-                    ), dim=1)
+                    x = torch.cat(
+                        (
+                            x[:, :1, :],
+                            deep_prompt_emb,
+                            x[:, (1 + self.num_tokens) :, :],
+                        ),
+                        dim=1,
+                    )
                     x = self.blocks[i](x)
         else:
             for blk in self.blocks:
@@ -317,17 +346,16 @@ class PromptedAdaptiveVisionTransformer(VisionTransformer):
             outcome = self.fc_norm(x)
         elif self.prompt_config.VIT_POOL_TYPE == "img_pool":
             assert self.prompt_config.LOCATION == "prepend"
-            x = x[:, self.num_tokens+1:, :].mean(dim=1)
+            x = x[:, self.num_tokens + 1 :, :].mean(dim=1)
             outcome = self.fc_norm(x)
         elif self.prompt_config.VIT_POOL_TYPE == "prompt_pool":
             assert self.prompt_config.LOCATION == "prepend"
-            x = x[:, 1:self.num_tokens+1, :].mean(dim=1)
+            x = x[:, 1 : self.num_tokens + 1, :].mean(dim=1)
             outcome = self.fc_norm(x)
         else:
             raise ValueError("pooling type for output is not supported")
 
         return outcome
-
 
 
 class PromptMLP(nn.Module):
@@ -369,7 +397,7 @@ class PromptMLP(nn.Module):
             self.block[1].register_forward_hook(
                 lambda m, inp, out: F.dropout(out, p=dropout, training=m.training)
             )
-        
+
         if learnable_scale:
             self.scale = nn.Parameter(torch.ones(1))
         else:
@@ -424,7 +452,14 @@ class ChannelWiseConv2d(nn.Module):
 
 class PromptDownSample(nn.Module):
     def __init__(
-        self, height, width, num_tokens, prompt_dim, kernel=2, padding=0, channelwise=True
+        self,
+        height,
+        width,
+        num_tokens,
+        prompt_dim,
+        kernel=2,
+        padding=0,
+        channelwise=True,
     ) -> None:
         super().__init__()
         self.height = height
@@ -433,7 +468,9 @@ class PromptDownSample(nn.Module):
         self.kernel = kernel
         self.padding = padding
 
-        self.conv = ChannelWiseConv2d(kernel, padding=padding, channel=prompt_dim, channelwise=channelwise)
+        self.conv = ChannelWiseConv2d(
+            kernel, padding=padding, channel=prompt_dim, channelwise=channelwise
+        )
 
         # compute H_new * W_new
         input_feat = (height + 2 * padding - kernel + 1) * (
@@ -470,18 +507,32 @@ def vit_base_patch16(prompt_cfg, **kwargs):
     if prompt_cfg.ADAPTIVE:
         model = PromptedAdaptiveVisionTransformer(
             prompt_cfg,
-            drop_path_rate=0.1, global_pool=True,  # using default settings for mae-finetune
-            patch_size=16, embed_dim=768, depth=12, num_heads=12,
-            mlp_ratio=4, qkv_bias=True,
-            norm_layer=partial(nn.LayerNorm, eps=1e-6), **kwargs)
+            drop_path_rate=0.1,
+            global_pool=True,  # using default settings for mae-finetune
+            patch_size=16,
+            embed_dim=768,
+            depth=12,
+            num_heads=12,
+            mlp_ratio=4,
+            qkv_bias=True,
+            norm_layer=partial(nn.LayerNorm, eps=1e-6),
+            **kwargs
+        )
     else:
         model = PromptedVisionTransformer(
             prompt_cfg,
-            drop_path_rate=0.1, global_pool=True,  # using default settings for mae-finetune
-            patch_size=16, embed_dim=768, depth=12, num_heads=12,
-            mlp_ratio=4, qkv_bias=True,
-            norm_layer=partial(nn.LayerNorm, eps=1e-6), **kwargs)
-        
+            drop_path_rate=0.1,
+            global_pool=True,  # using default settings for mae-finetune
+            patch_size=16,
+            embed_dim=768,
+            depth=12,
+            num_heads=12,
+            mlp_ratio=4,
+            qkv_bias=True,
+            norm_layer=partial(nn.LayerNorm, eps=1e-6),
+            **kwargs
+        )
+
     return model
 
 
@@ -489,18 +540,32 @@ def vit_large_patch16(prompt_cfg, **kwargs):
     if prompt_cfg.ADAPTIVE:
         model = PromptedAdaptiveVisionTransformer(
             prompt_cfg,
-            drop_path_rate=0.1, global_pool=True,  # using default settings for mae-finetune
-            patch_size=16, embed_dim=1024, depth=24, num_heads=16,
-            mlp_ratio=4, qkv_bias=True,
-            norm_layer=partial(nn.LayerNorm, eps=1e-6), **kwargs)
+            drop_path_rate=0.1,
+            global_pool=True,  # using default settings for mae-finetune
+            patch_size=16,
+            embed_dim=1024,
+            depth=24,
+            num_heads=16,
+            mlp_ratio=4,
+            qkv_bias=True,
+            norm_layer=partial(nn.LayerNorm, eps=1e-6),
+            **kwargs
+        )
     else:
         model = PromptedVisionTransformer(
             prompt_cfg,
-            drop_path_rate=0.1, global_pool=True,  # using default settings for mae-finetune
-            patch_size=16, embed_dim=1024, depth=24, num_heads=16,
-            mlp_ratio=4, qkv_bias=True,
-            norm_layer=partial(nn.LayerNorm, eps=1e-6), **kwargs)
-        
+            drop_path_rate=0.1,
+            global_pool=True,  # using default settings for mae-finetune
+            patch_size=16,
+            embed_dim=1024,
+            depth=24,
+            num_heads=16,
+            mlp_ratio=4,
+            qkv_bias=True,
+            norm_layer=partial(nn.LayerNorm, eps=1e-6),
+            **kwargs
+        )
+
     return model
 
 
@@ -508,16 +573,30 @@ def vit_huge_patch14(prompt_cfg, **kwargs):
     if prompt_cfg.ADAPTIVE:
         model = PromptedAdaptiveVisionTransformer(
             prompt_cfg,
-            drop_path_rate=0.1, global_pool=True,  # using default settings for mae-finetune
-            patch_size=14, embed_dim=1280, depth=32, num_heads=16,
-            mlp_ratio=4, qkv_bias=True,
-            norm_layer=partial(nn.LayerNorm, eps=1e-6), **kwargs)
+            drop_path_rate=0.1,
+            global_pool=True,  # using default settings for mae-finetune
+            patch_size=14,
+            embed_dim=1280,
+            depth=32,
+            num_heads=16,
+            mlp_ratio=4,
+            qkv_bias=True,
+            norm_layer=partial(nn.LayerNorm, eps=1e-6),
+            **kwargs
+        )
     else:
         model = PromptedVisionTransformer(
             prompt_cfg,
-            drop_path_rate=0.1, global_pool=True,  # using default settings for mae-finetune
-            patch_size=14, embed_dim=1280, depth=32, num_heads=16,
-            mlp_ratio=4, qkv_bias=True,
-            norm_layer=partial(nn.LayerNorm, eps=1e-6), **kwargs)
-        
+            drop_path_rate=0.1,
+            global_pool=True,  # using default settings for mae-finetune
+            patch_size=14,
+            embed_dim=1280,
+            depth=32,
+            num_heads=16,
+            mlp_ratio=4,
+            qkv_bias=True,
+            norm_layer=partial(nn.LayerNorm, eps=1e-6),
+            **kwargs
+        )
+
     return model

@@ -35,7 +35,6 @@ class Sun397Data(base.ImageTfdsData):
     """Provides Sun397Data data."""
 
     def __init__(self, config="tfds", data_dir=None):
-
         if config == "tfds":
             dataset_builder = tfds.builder("sun397/tfds:4.*.*", data_dir=data_dir)
             dataset_builder.download_and_prepare()
@@ -62,7 +61,6 @@ class Sun397Data(base.ImageTfdsData):
                 num_samples_splits["train"] + num_samples_splits["val"]
             )
         else:
-
             raise ValueError("No supported config %r for Sun397Data." % config)
 
         super(Sun397Data, self).__init__(

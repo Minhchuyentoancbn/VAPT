@@ -380,7 +380,6 @@ class Trainer:
     def eval_classifier_GENERAL(
         self, model, train_loader, data_loader, prefix, integrated_method
     ):
-
         def reshape_transform(tensor, height=14, width=14):
             # print('In reshape_transform', tensor.shape) # [batch size, 197 ,768]
             # print('In reshape_transform', tensor.shape) In reshape_transform torch.Size([64, 297, 768])
@@ -477,7 +476,6 @@ class Trainer:
                     np.savetxt(f, outputs_numpy.reshape(1, -1), fmt="%.6f")
 
             if attribution_patches is not None:
-
                 default_cmap = LinearSegmentedColormap.from_list(
                     "custom blue",
                     [(0, "#ffffff"), (0.25, "#000000"), (1, "#000000")],
@@ -652,10 +650,8 @@ class Trainer:
                     target_chunk = targets[start_idx:end_idx]
 
                     if target_chunk.shape[0] != 0:
-
                         # attribution_chunk = ig_patches.attribute(inputs_chunk, baselines=baseline_chunk, target=target_chunk)
                         if integrated_method == "pytorch_gradcam":
-
                             attribution_chunk = ig_patches(
                                 input_tensor=inputs_chunk,
                                 targets=None,
