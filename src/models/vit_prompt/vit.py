@@ -63,7 +63,6 @@ class PromptedTransformer(Transformer):
             nn.init.uniform_(self.prompt_embeddings.data, -val, val)
 
             if self.prompt_config.DEEP:  # noqa
-
                 total_d_layer = config.transformer["num_layers"] - 1
                 self.deep_prompt_embeddings = nn.Parameter(
                     torch.zeros(total_d_layer, num_tokens, prompt_dim)
@@ -207,12 +206,16 @@ class PromptedTransformerAdaptive(Transformer):
             nn.init.uniform_(self.prompt_embeddings.data, -val, val)
 
             if self.prompt_config.DEEP:  # noqa
-
-                total_d_layer = config.transformer["num_layers"] - self.prompt_config.VPT_DEPTH
+                total_d_layer = (
+                    config.transformer["num_layers"] - self.prompt_config.VPT_DEPTH
+                )
 
                 if self.prompt_config.VPT_DEPTH > 1:
-                    self.deep_prompt_embeddings = nn.Parameter(torch.zeros(
-                        self.prompt_config.VPT_DEPTH - 1, num_tokens, prompt_dim))
+                    self.deep_prompt_embeddings = nn.Parameter(
+                        torch.zeros(
+                            self.prompt_config.VPT_DEPTH - 1, num_tokens, prompt_dim
+                        )
+                    )
                     # xavier_uniform initialization
                     nn.init.uniform_(self.deep_prompt_embeddings.data, -val, val)
 
@@ -244,7 +247,6 @@ class PromptedTransformerAdaptive(Transformer):
                         )
                 else:
                     self.deep_prompt_embeddings_mlp = nn.Identity()
-                    
 
                 self.deep_prompt_norm = nn.ModuleList(
                     [nn.LayerNorm(prompt_dim) for _ in range(total_d_layer)]
@@ -267,7 +269,10 @@ class PromptedTransformerAdaptive(Transformer):
                     )
                 else:
                     self.deep_prompt_downsample = nn.ModuleList(
-                        [nn.Linear(self.__size * self.__size, num_tokens) for _ in range(total_d_layer)]
+                        [
+                            nn.Linear(self.__size * self.__size, num_tokens)
+                            for _ in range(total_d_layer)
+                        ]
                     )
 
                     for i in range(total_d_layer):
@@ -327,11 +332,12 @@ class PromptedTransformerAdaptive(Transformer):
                 hidden_states, weights = self.encoder.layer[i](embedding_output)
             else:
                 if i < self.prompt_depth:
-
                     if i < self.prompt_config.VPT_DEPTH:
                         deep_prompt_emb = self.prompt_dropout(
                             self.prompt_proj(self.deep_prompt_embeddings[i - 1]).expand(
-                                B, -1, -1))
+                                B, -1, -1
+                            )
+                        )
                         hidden_states = torch.cat(
                             (
                                 hidden_states[:, :1, :],
@@ -340,7 +346,7 @@ class PromptedTransformerAdaptive(Transformer):
                             ),
                             dim=1,
                         )
-                    else:       
+                    else:
                         x_states = torch.cat(
                             (
                                 hidden_states[:, :1, :],
@@ -348,7 +354,11 @@ class PromptedTransformerAdaptive(Transformer):
                             ),
                             dim=1,
                         )
-                        x_states = self.deep_prompt_norm[i - self.prompt_config.VPT_DEPTH](x_states)[:, 1:, :]  # (B, num_tokens, hidden_dim)
+                        x_states = self.deep_prompt_norm[
+                            i - self.prompt_config.VPT_DEPTH
+                        ](x_states)[
+                            :, 1:, :
+                        ]  # (B, num_tokens, hidden_dim)
                         if self.prompt_config.CONV:
                             x_states = x_states.permute(0, 2, 1).reshape(
                                 B, self.prompt_dim, self.__size, self.__size
@@ -356,14 +366,18 @@ class PromptedTransformerAdaptive(Transformer):
                         else:
                             x_states = x_states.permute(0, 2, 1)
 
-                        x_states = self.deep_prompt_downsample[i - self.prompt_config.VPT_DEPTH](x_states).permute(
+                        x_states = self.deep_prompt_downsample[
+                            i - self.prompt_config.VPT_DEPTH
+                        ](x_states).permute(
                             0, 2, 1
                         )  # (B, num_tokens, hidden_dim)
 
                         if self.prompt_config.SHARE_PROJECTOR:
                             deep_prompt_emb = self.deep_prompt_embeddings_mlp(x_states)
                         else:
-                            deep_prompt_emb = self.deep_prompt_embeddings_mlp[i - self.prompt_config.VPT_DEPTH](x_states)
+                            deep_prompt_emb = self.deep_prompt_embeddings_mlp[
+                                i - self.prompt_config.VPT_DEPTH
+                            ](x_states)
 
                         hidden_states = torch.cat(
                             (
@@ -466,7 +480,7 @@ class PromptMLP(nn.Module):
             self.block[1].register_forward_hook(
                 lambda m, inp, out: F.dropout(out, p=dropout, training=m.training)
             )
-        
+
         if learnable_scale:
             self.scale = nn.Parameter(torch.ones(1))
         else:
@@ -520,7 +534,14 @@ class ChannelWiseConv2d(nn.Module):
 
 class PromptDownSample(nn.Module):
     def __init__(
-        self, height, width, num_tokens, prompt_dim, kernel=2, padding=0, channelwise=True
+        self,
+        height,
+        width,
+        num_tokens,
+        prompt_dim,
+        kernel=2,
+        padding=0,
+        channelwise=True,
     ) -> None:
         super().__init__()
         self.height = height
@@ -529,7 +550,9 @@ class PromptDownSample(nn.Module):
         self.kernel = kernel
         self.padding = padding
 
-        self.conv = ChannelWiseConv2d(kernel, padding=padding, channel=prompt_dim, channelwise=channelwise)
+        self.conv = ChannelWiseConv2d(
+            kernel, padding=padding, channel=prompt_dim, channelwise=channelwise
+        )
 
         # compute H_new * W_new
         input_feat = (height + 2 * padding - kernel + 1) * (

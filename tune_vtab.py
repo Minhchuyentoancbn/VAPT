@@ -221,7 +221,6 @@ def train(cfg, args, final_runs):
 
 
 def get_lrwd_range(args):
-
     if args.train_type == "finetune":
         lr_range = [0.001, 0.0001, 0.0005, 0.005]
         wd_range = [0.01, 0.001, 0.0001, 0.0]
@@ -259,7 +258,18 @@ def get_lrwd_range(args):
         wd_range = [0.01, 0.001, 0.0001, 0.0]
 
     elif args.train_type == "prompt":
-        lr_range = [5.0, 2.5, 1.0, 50.0, 25.0, 10.0, 0.5, 0.25, 0.1, 0.05, ]
+        lr_range = [
+            5.0,
+            2.5,
+            1.0,
+            50.0,
+            25.0,
+            10.0,
+            0.5,
+            0.25,
+            0.1,
+            0.05,
+        ]
 
         wd_range = [0.01, 0.001, 0.0001, 0.0]
 
@@ -347,7 +357,7 @@ def main(args):
         f"\033[92mSaving best lr and wd to {os.path.join(output_dir, f'best_lrwd_acc{best_acc:.3f}.txt')}\033[0m"
     )
     print("-" * 20)
-    
+
     # final run 5 times with fixed seed
     random_seeds = [42, 44, 82, 100, 800]
 
@@ -356,7 +366,8 @@ def main(args):
     for run_idx, seed in enumerate(random_seeds):
         try:
             cfg = setup(
-                args, best_lr, best_wd, final_runs=True, run_idx=run_idx+1, seed=seed)
+                args, best_lr, best_wd, final_runs=True, run_idx=run_idx + 1, seed=seed
+            )
         except ValueError:
             # already ran
             continue

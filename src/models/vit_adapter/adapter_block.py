@@ -22,7 +22,6 @@ logger = logging.get_logger("visual_prompt")
 
 
 class Pfeiffer_Block(Block):
-
     def __init__(
         self,
         adapter_config,
@@ -36,7 +35,6 @@ class Pfeiffer_Block(Block):
         act_layer=nn.GELU,
         norm_layer=nn.LayerNorm,
     ):
-
         super(Pfeiffer_Block, self).__init__(
             dim=dim,
             num_heads=num_heads,
@@ -69,7 +67,6 @@ class Pfeiffer_Block(Block):
             raise ValueError("Other adapter styles are not supported.")
 
     def forward(self, x):
-
         if self.adapter_config.STYLE == "Pfeiffer":
             # same as reguluar ViT block
             h = x

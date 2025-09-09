@@ -31,7 +31,6 @@ class PatchCamelyonData(base.ImageTfdsData):
     """Provides PatchCamelyon data."""
 
     def __init__(self, data_dir=None):
-
         dataset_builder = tfds.builder("patch_camelyon:2.*.*", data_dir=data_dir)
         dataset_builder.download_and_prepare()
 

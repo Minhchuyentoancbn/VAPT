@@ -22,7 +22,6 @@ logger = logging.get_logger("visual_prompt")
 
 class PromptedTransformer(Transformer):
     def __init__(self, prompt_config, config, img_size, vis):
-
         if prompt_config.LOCATION == "pad":
             img_size += 2 * prompt_config.NUM_TOKENS
 
@@ -133,7 +132,6 @@ class PromptedTransformer(Transformer):
                     self.prompt_config.LOCATION in ["prepend", "add", "add-1"]
                     and self.prompt_config.DEEP
                 ):  # noqa
-
                     if self.prompt_config.NUM_DEEP_LAYERS is None:
                         total_d_layer = config.transformer["num_layers"] - 1
 

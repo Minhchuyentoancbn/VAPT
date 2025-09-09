@@ -461,7 +461,6 @@ def np2th(weights, conv=False):
 
 
 class StdConv2d(nn.Conv2d):
-
     def forward(self, x):
         w = self.weight
         v, m = torch.var_mean(w, dim=[1, 2, 3], keepdim=True, unbiased=False)
@@ -505,7 +504,6 @@ class PreActBottleneck(nn.Module):
             self.gn_proj = nn.GroupNorm(cout, cout)
 
     def forward(self, x):
-
         # Residual branch
         residual = x
         if hasattr(self, "downsample"):

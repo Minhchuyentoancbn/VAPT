@@ -25,16 +25,13 @@ def make_optimizer(models: List[Any], train_params: CfgNode) -> Optimizer:
             logger.info("Trainable params:")
 
         for key, value in model.named_parameters():
-
             if value.requires_grad:
-
                 if train_params.DBG_TRAINABLE:
                     logger.info("\t{}, {}, {}".format(key, value.numel(), value.shape))
                 params.append((key, value))
 
     if train_params.WEIGHT_DECAY > 0:
         if train_params.OPTIMIZER == "adamw":
-
             no_decay = ["bias", "LayerNorm.bias", "LayerNorm.weight"]
             optimizer_grouped_parameters = [
                 {

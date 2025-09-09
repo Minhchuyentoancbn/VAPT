@@ -33,6 +33,7 @@ def _construct_loader(cfg, split, batch_size, shuffle, drop_last):
     if dataset_name.startswith("vtab-"):
         # import the tensorflow here only if needed
         from .datasets.tf_dataset import TFDataset
+
         dataset = TFDataset(cfg, split)
     else:
         assert (

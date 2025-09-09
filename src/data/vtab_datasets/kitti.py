@@ -168,7 +168,6 @@ class KittiData(base.ImageTfdsData):
     """
 
     def __init__(self, task, data_dir=None):
-
         if task not in _TASK_DICT:
             raise ValueError("Unknown task: %s" % task)
 
