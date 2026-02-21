@@ -157,11 +157,10 @@ python tune_vtab.py \
 If you find our work or this codebase helpful, please consider citing:
 
 ```bibtex
-@inproceedings{le2026revisit,
+@inproceedings{lerevisit,
   title={Revisit Visual Prompt Tuning: The Expressiveness of Prompt Experts},
-  author={Le, Minh and Dao, Bao-Ngoc and Nguyen, Huy and Tran, Quyen and Nguyen, Anh and Ho, Nhat},
-  booktitle={International Conference on Learning Representations (ICLR)},
-  year={2026}
+  author={Le, Minh and Nguyen, Anh and Nguyen, Huy and Nguyen, Chau and Tran, Anh Tuan and Ho, Nhat},
+  booktitle={The Fourteenth International Conference on Learning Representations}
 }
 ```
 
