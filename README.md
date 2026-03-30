@@ -9,6 +9,8 @@
 
 **Official PyTorch implementation of the ICLR 2026 paper.**
 
+![poster](./docs/poster.png)
+
 </div>
 
 ## Table of Contents
